@@ -3,7 +3,25 @@ import { useState } from "react";
 import { useAuth } from "./AuthContext.jsx";
 
 export default function Entrance() {
-  // TODO: call signup when form is submitted
+  //this holds the username that is entered
+  //starts name as empty string
+  //setName updates the name when the user types it in
+  const [name, setName] = useState("");
+  //this pulls the signup outcome out of the Auth context
+  //calls useAuth hook to get the context value
+  //uses the signup function made in AuthContext.jsx
+  //{ signup } tells javascript to looks inside the object and find the property named "signup" and create a local constant variable also called signup
+  //same as writing auth = useAuth(); and signup = auth.signup
+  const { signup } = useAuth();
+
+  async function handleSubmit(e) {
+    e.preventDefault(); //this stops the browser from reloading
+    try {
+      await signup(name);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <>
@@ -18,12 +36,16 @@ export default function Entrance() {
         fixed on you. The one on the left opens its mouth, and with a deep,
         rumbling voice, it asks, "Who approaches? Speak your name."
       </p>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label>
           Name
-          <input name="name" />
+          <input
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </label>
-        <button>Respond</button>
+        <button type="submit">Respond</button>
       </form>
     </>
   );
