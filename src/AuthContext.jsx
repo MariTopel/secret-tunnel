@@ -5,8 +5,8 @@ const API = "https://fsa-jwt-practice.herokuapp.com";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState();
-  const [location, setLocation] = useState("GATE");
+  const [token, setToken] = useState(); //token holds the JWT from the API
+  const [location, setLocation] = useState("GATE"); //location controls which screen to show
 
   // TODO: signup
 
