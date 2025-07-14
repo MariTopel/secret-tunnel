@@ -17,11 +17,35 @@ export function AuthProvider({ children }) {
   //setLocation updates the string and it's matched up against the values in App.jsx to check what page you should be on.
   const [location, setLocation] = useState("GATE"); //location controls which screen to show. Does GATE mean entrance? Answer: Yes. For some reason in App.jsx GATE is assigned to entrance. This is a string entry.
 
-  // TODO: signup
+  //making async function that takes username since the demo only used username
+  async function signup(username) {
+    //this calls the signup end point passing JSON headers and body along with it
+    const res = await fetch(`${API}/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password: "password" }), //aparently a fake password is needed to make this work even though we never use it
+    });
+
+    //converts the response into a JS object
+    const data = await res.json();
+
+    //if there is a failure in fetching the API there will be an error thrown. Somewhere else the error will be caught
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    //on success the JWT is stored and the UI is changed to "TABLET"
+    setToken(data.token);
+    setLocation("TABLET");
+  }
 
   // TODO: authenticate
 
-  const value = { location }; //this is where everything will be passed to
+  //the value object is the only thing the children can see when they do useContext(AuthContext) or useAuth
+  //anything i want the child components to be able to read or call MUST live in the this value object
+  const value = { location, signup }; //this is where everything will be passed to
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
@@ -31,3 +55,6 @@ export function useAuth() {
   if (!context) throw Error("useAuth must be used within an AuthProvider");
   return context;
 }
+
+//in React Context exposing something means making it available to any component that consumes the context.
+//AuthContext is where the authentication logic lives: State (token, location) and functions that chaange the state (signup and authenticate)
