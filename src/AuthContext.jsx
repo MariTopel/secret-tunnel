@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, password: "password" }), //aparently a fake password is needed to make this work even though we never use it
+      body: JSON.stringify({ username, password: "password" }), //aparently a fake password is needed to make this work even though we never use it from what i can tell from the demo
     });
 
     //converts the response into a JS object
@@ -41,11 +41,40 @@ export function AuthProvider({ children }) {
     setLocation("TABLET");
   }
 
-  // TODO: authenticate
+  //asyn is needed because it needs to await the network call. There are no parameters because JWT is stores in token.
+  //because token is defined inside the same function scope as authenticate(), Javascript will automatically give it access. This is called a closure. authenticate will close over the token variable automatically.
+  async function authenticate() {
+    //verify that a token is recieved
+    //cheks the token state frfom useState at the top
+    //this is needed because someone could call authenticate() before signing up and this will catch it before it sends bad data to the api
+    //this throw will go up to whatever component called authenticate so it will show this error
+    if (!token) {
+      throw new Error("No token");
+    }
+    //obvi the API/authenticate takes us to the link with the autheticate section
+    //according to the API documentation we use GET
+    const res = await fetch(`${API}/authenticate`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    //res.json returns a promise so it needs to await for it.
+    const data = await res.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+    //update location state frfom "TABLET" to "TUNNEL"
+    //in App.jsx this causes React to rerender and display <Tunnel /> instead of <Tablet />
+    setLocation("TUNNEL");
+  }
 
   //the value object is the only thing the children can see when they do useContext(AuthContext) or useAuth
   //anything i want the child components to be able to read or call MUST live in the this value object
-  const value = { location, signup }; //this is where everything will be passed to
+
+  const value = { location, signup, authenticate }; //this is where everything will be passed to
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
